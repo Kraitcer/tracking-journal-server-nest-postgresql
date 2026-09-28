@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  firstName    String
+  lastName     String
+  isActive     Boolean @default(true)
+  profileName  String?
+  password     String?
+  authProvider String  @default("local")
+  googleId     String? @unique
+
+  @@map("users")
+}
+
+model Journal {
+  id            String   @id @default(cuid())
+  journal_id    String?
+  user_id       String?
+  free_days     Json     @default("[]")
+  journal_pages Json     @default("[]")
+  start_date    String?
+  end_date      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("journals")
+}
+
+model Habit {
+  id        String   @id @default(cuid())
+  user_id   String?
+  name      String?
+  direction String?
+  type      String?
+  status    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("habits")
+}
+
+model MorningPage {
+  id                    String   @id @default(cuid())
+  user_id               String?
+  journal_id            String?
+  pageDate              String?
+  display               String?
+  finalized             Boolean  @default(false)
+  selectedProject       String?
+  selectedGoal          String?
+  wakeUpTime            String?
+  wokeUpEnergized       Boolean  @default(false)
+  hungryForAction       Boolean  @default(false)
+  sleeprRating          Int
+  todayProjectsAndGoals Json     @default("[]")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("morningPages")
+}
+
+model EveningPage {
+  id           String   @id @default(cuid())
+  user_id      String?
+  pageDate     String?
+  layouts      Json?
+  isEditing    String   @default("editing")
+  allGoals     Json?
+  journal_id   String?
+  todayGoals   Json?
+  todaysTasks  Json?
+  gratefulness Json?
+  voteCast     Json?
+  yourEngine   Json
+  badTime      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("eveningPages")
+}
+
+model Project {
+  id           String  @id @default(cuid())
+  user_id      String?
+  projectName  String
+  date_created String?
+  description  String?
+  completed    Boolean @default(false)
+  priority     Int     @default(0)
+  fetusIndex   Json?
+
+  @@map("projects")
+}
+
+model Fetus {
+  id         String   @id @default(cuid())
+  projectID  String?
+  fetusIndex Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("FETUS")
+}
+
+model Description {
+  id        String @id @default(cuid())
+  entity    String
+  entity_id String
+  body      Json   @default("[]")
+
+  @@unique([entity, entity_id])
+  @@map("descriptions")
+}
+
+model Goal {
+  id               String  @id @default(cuid())
+  goalName         String?
+  currentProjectID String?
+  description      String?
+  priority         Int     @default(0)
+  status           String?
+  padMode          String  @default("goalsPageMain")
+  subTasks         Int     @default(0)
+  creationDate     String?
+  timeSpent        String?
+  dueDate          String?
+
+  @@map("goals")
+}
+
+model Task {
+  id          String  @id @default(cuid())
+  taskName    String  @default("")
+  goal_id     String?
+  project_id  String?
+  description String  @default("")
+  isEditing   Boolean @default(false)
+  completed   Boolean @default(false)
+
+  @@map("tasks")
+}
+
+model SubTask {
+  id          String  @id @default(cuid())
+  subTaskName String?
+  goal_id     String?
+  task_id     String?
+  project_id  String?
+  description String  @default("")
+  padMode     String  @default("main")
+  completed   Boolean @default(false)
+
+  @@map("subTasks")
+}
+
+model WeekInReviewPage {
+  id         String   @id @default(cuid())
+  user_id    String
+  journal_id String?
+  pageDate   String?
+  isEditing  String   @default("editing")
+  layouts    Json?
+  projects   Json     @default("[]")
+  habits     Json     @default("[]")
+  moreOrLess Json     @default("[]")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("weekInReviewPages")
+}
+
+model PlanningNextWeekPage {
+  id         String   @id @default(cuid())
+  user_id    String
+  journal_id String?
+  pageDate   String?
+  isEditing  String   @default("editing")
+  layouts    Json?
+  habits     Json     @default("[]")
+  projects   Json     @default("[]")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("planningNextWeekPages")
+}
+
+model FreeDay {
+  id           String  @id @default(cuid())
+  user_id      String?
+  journal_id   String?
+  pageDate     String?
+  morningPages String?
+  eveningPages String?
+
+  @@map("freedays")
+}
