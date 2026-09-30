@@ -10,7 +10,15 @@ import {
 
 function toResponse(doc: unknown): Body {
   const plain = toPlain(doc);
-  return { id: plain.id, ...plain, _id: plain.id };
+  return {
+    id: plain.id,
+    _id: plain.id,
+    for: {
+      entity: plain.entity,
+      entity_id: plain.entity_id,
+    },
+    body: plain.body,
+  };
 }
 
 function entityFilter(query: Body): Body {
