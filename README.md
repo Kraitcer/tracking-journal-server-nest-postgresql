@@ -2,10 +2,20 @@
 
 NestJS API backed by PostgreSQL through Prisma. Request validation and API routes are retained from the MongoDB server.
 
-## Setup
+## Docker Compose
+
+From the workspace root, copy `.env.example` to `.env`, set the database credentials and JWT secret, then start the stack:
+
+```sh
+docker compose up --build
+```
+
+The client is available at `http://localhost:5173`, the API at `http://localhost:5001/api`, and PostgreSQL data is kept in the `postgres_data` volume. The API generates the Prisma client and applies migrations when it starts.
+
+## Manual Setup
 
 1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env` and set `DATABASE_URL` to a PostgreSQL database.
+2. Configure `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and `DB_SCHEMA`. Docker Compose combines these values into `DATABASE_URL` for both Prisma and the API.
 3. Create/update the database schema with `npm run db:migrate`.
 4. Start the API with `npm run start:dev`.
 
