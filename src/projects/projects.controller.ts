@@ -7,9 +7,13 @@ import {
   Param,
   Post,
   Put,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import type { Body as Payload } from '../common/http.js';
 import { ProjectsService } from './projects.service.js';
+
+type AuthenticatedRequest = Request & { user: { id: string } };
 
 @Controller('projects')
 export class ProjectsController {
@@ -27,8 +31,8 @@ export class ProjectsController {
   }
 
   @Put('reorder')
-  reorder(@Body() body: Payload) {
-    return this.projectsService.reorder(body);
+  reorder(@Req() req: AuthenticatedRequest, @Body() body: Payload) {
+    return this.projectsService.reorder(req.user.id, body);
   }
 
   @Put(':id/fetus')

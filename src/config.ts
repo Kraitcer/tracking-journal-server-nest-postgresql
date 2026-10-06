@@ -4,8 +4,15 @@ import path from 'node:path';
 export const appConfig = {
   port: Number(process.env.PORT ?? 5000),
   databaseUrl: process.env.DATABASE_URL ?? '',
+  databasePoolMax: Number(process.env.DATABASE_POOL_MAX ?? 10),
   jwtPrivateKey: process.env.trackingApp_jwtPrivateKey,
   googleClientId: process.env.trackingApp_googleClientId ?? '',
+  corsOrigins: (
+    process.env.CORS_ORIGINS ?? 'http://localhost:5173,http://127.0.0.1:5173'
+  )
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   uploadsDir: path.resolve(
     process.env.UPLOADS_DIR ?? path.join(process.cwd(), 'uploads'),
   ),

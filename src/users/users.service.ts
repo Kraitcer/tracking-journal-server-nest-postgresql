@@ -3,16 +3,12 @@ import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import { SignJWT } from 'jose';
 import { appConfig, getJwtSecret } from '../config.js';
-import { type Body, httpError, joiValidate } from '../common/http.js';
+import { type Body, httpError } from '../common/http.js';
 import { PrismaService } from '../database/prisma.service.js';
-import {
-  createUserSchema,
-  googleLoginSchema,
-  loginSchema,
-} from './dto/create-user.dto.js';
-import { updateUserSchema } from './dto/update-user.dto.js';
 
 const NOT_FOUND = 'Fucking fuck...';
+const TOKEN_ISSUER = 'tracking-journal';
+const TOKEN_AUDIENCE = 'tracking-journal-api';
 
 function isBcryptHash(value: unknown): boolean {
   return typeof value === 'string' && /^\$2[aby]\$\d{2}\$/.test(value);
@@ -35,6 +31,10 @@ export class UsersService {
   private generateAuthToken(user: { id: unknown }): Promise<string> {
     return new SignJWT({ _id: user.id })
       .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer(TOKEN_ISSUER)
+      .setAudience(TOKEN_AUDIENCE)
+      .setIssuedAt()
+      .setExpirationTime('30d')
       .sign(getJwtSecret());
   }
 
@@ -74,12 +74,10 @@ export class UsersService {
   }
 
   async register(body: Body) {
-    joiValidate(createUserSchema, body);
     try {
       const hashedPassword = await bcrypt.hash(body.password, 10);
       const user = await this.prisma.user.create({
         data: {
-          id: body._id,
           firstName: body.firstName,
           lastName: body.lastName,
           profileName: body.profileName,
@@ -104,7 +102,6 @@ export class UsersService {
   }
 
   async update(id: string, body: Body) {
-    joiValidate(updateUserSchema, body);
     const current = await this.prisma.user.findUnique({ where: { id } });
     if (!current) throw httpError(HttpStatus.NOT_FOUND, NOT_FOUND);
     const user = await this.prisma.user.update({
@@ -145,8 +142,6 @@ export class UsersService {
   }
 
   async login(body: Body) {
-    joiValidate(loginSchema, body);
-
     const user = await this.prisma.user.findUnique({
       where: { email: body.email },
     });
@@ -154,22 +149,16 @@ export class UsersService {
       throw httpError(HttpStatus.BAD_REQUEST, 'invalid email or password');
     }
 
-    let validPassword = false;
-    if (typeof user.password === 'string' && isBcryptHash(user.password)) {
-      validPassword = await bcrypt.compare(body.password, user.password);
-    } else {
-      // Backward compatibility: old users may still have plaintext passwords.
-      validPassword = body.password === user.password;
-      if (validPassword) {
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { password: await bcrypt.hash(body.password, 10) },
-        });
-      }
-    }
+    const validPassword =
+      typeof user.password === 'string' &&
+      isBcryptHash(user.password) &&
+      (await bcrypt.compare(body.password, user.password));
 
     if (!validPassword) {
       throw httpError(HttpStatus.BAD_REQUEST, 'invalid email or password');
+    }
+    if (!user.isActive) {
+      throw httpError(HttpStatus.UNAUTHORIZED, 'Account is inactive');
     }
 
     const { id, email, firstName, lastName, isActive } = user;
@@ -178,8 +167,6 @@ export class UsersService {
   }
 
   async googleLogin(body: Body) {
-    joiValidate(googleLoginSchema, body);
-
     if (!this.googleClient || !appConfig.googleClientId) {
       console.error('GOOGLE login failed: googleClientId is not configured');
       throw httpError(
@@ -207,6 +194,10 @@ export class UsersService {
       let user =
         (await this.prisma.user.findUnique({ where: { googleId } })) ??
         (await this.prisma.user.findUnique({ where: { email } }));
+
+      if (user && !user.isActive) {
+        return this.unauthorized('Account is inactive');
+      }
 
       const firstName = normalizeName(
         payload.given_name || payload.name,

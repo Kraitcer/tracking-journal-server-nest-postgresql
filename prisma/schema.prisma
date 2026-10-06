@@ -32,6 +32,7 @@ model Journal {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  @@index([user_id])
   @@map("journals")
 }
 
@@ -45,6 +46,7 @@ model Habit {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([user_id])
   @@map("habits")
 }
 
@@ -65,6 +67,8 @@ model MorningPage {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
+  @@index([user_id])
+  @@index([journal_id])
   @@map("morningPages")
 }
 
@@ -85,6 +89,8 @@ model EveningPage {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  @@index([user_id])
+  @@index([journal_id])
   @@map("eveningPages")
 }
 
@@ -98,6 +104,7 @@ model Project {
   priority     Int     @default(0)
   fetusIndex   Json?
 
+  @@index([user_id])
   @@map("projects")
 }
 
@@ -108,6 +115,7 @@ model Fetus {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  @@index([projectID, createdAt(sort: Desc)])
   @@map("FETUS")
 }
 
@@ -134,6 +142,8 @@ model Goal {
   timeSpent        String?
   dueDate          String?
 
+  @@index([currentProjectID, status])
+  @@index([currentProjectID, priority])
   @@map("goals")
 }
 
@@ -146,6 +156,8 @@ model Task {
   isEditing   Boolean @default(false)
   completed   Boolean @default(false)
 
+  @@index([goal_id])
+  @@index([project_id])
   @@map("tasks")
 }
 
@@ -159,6 +171,9 @@ model SubTask {
   padMode     String  @default("main")
   completed   Boolean @default(false)
 
+  @@index([goal_id])
+  @@index([task_id])
+  @@index([project_id])
   @@map("subTasks")
 }
 
@@ -175,6 +190,8 @@ model WeekInReviewPage {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  @@index([user_id])
+  @@index([journal_id])
   @@map("weekInReviewPages")
 }
 
@@ -190,6 +207,8 @@ model PlanningNextWeekPage {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  @@index([user_id])
+  @@index([journal_id])
   @@map("planningNextWeekPages")
 }
 
@@ -201,5 +220,7 @@ model FreeDay {
   morningPages String?
   eveningPages String?
 
+  @@index([user_id])
+  @@index([journal_id])
   @@map("freedays")
 }

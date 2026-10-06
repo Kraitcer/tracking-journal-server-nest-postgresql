@@ -89,28 +89,35 @@ export class GoalsService {
     return this.withCounters(goals);
   }
 
-  private withCounters(goals: any[]) {
-    return Promise.all(
-      goals.map(async (goal) => {
-        const [subTasks, tasks] = await Promise.all([
-          // Same filter as the old server (subTasks have no currentTaskID field).
-          this.prisma.subTask.count({
-            where: { goal_id: goal.id, completed: false },
-          }),
-          this.prisma.task.count({
-            where: { goal_id: goal.id, completed: false },
-          }),
-        ]);
-        // Stored fields are spread last, exactly like `...goal._doc` in the old server.
-        return {
-          id: goal.id,
-          padMode: goal.padMode || 'goalsPageMain',
-          subTasks,
-          tasks,
-          ...goal,
-        };
+  private async withCounters(goals: any[]) {
+    if (goals.length === 0) return [];
+    const goalIds = goals.map((goal) => goal.id);
+    const [subTaskCounts, taskCounts] = await Promise.all([
+      this.prisma.subTask.groupBy({
+        by: ['goal_id'],
+        where: { goal_id: { in: goalIds }, completed: false },
+        _count: { _all: true },
       }),
+      this.prisma.task.groupBy({
+        by: ['goal_id'],
+        where: { goal_id: { in: goalIds }, completed: false },
+        _count: { _all: true },
+      }),
+    ]);
+    const subTasksByGoal = new Map(
+      subTaskCounts.map((entry) => [entry.goal_id, entry._count._all]),
     );
+    const tasksByGoal = new Map(
+      taskCounts.map((entry) => [entry.goal_id, entry._count._all]),
+    );
+
+    return goals.map((goal) => ({
+      id: goal.id,
+      padMode: goal.padMode || 'goalsPageMain',
+      subTasks: subTasksByGoal.get(goal.id) ?? 0,
+      tasks: tasksByGoal.get(goal.id) ?? 0,
+      ...goal,
+    }));
   }
 
   create(body: Body) {

@@ -13,7 +13,7 @@ export function httpError(
   return new HttpException(message, status);
 }
 
-export function joiValidate(schema: Joi.Schema, value: unknown): void {
+export function joiValidate(schema: Joi.Schema, value: unknown): Body {
   let payload = value;
   if (
     payload !== null &&
@@ -24,10 +24,11 @@ export function joiValidate(schema: Joi.Schema, value: unknown): void {
     const { id, ...rest } = payload as Body;
     payload = { ...rest, _id: id };
   }
-  const { error } = schema.validate(payload);
+  const { error, value: validated } = schema.validate(payload);
   if (error) {
     throw httpError(HttpStatus.BAD_REQUEST, error.details[0].message);
   }
+  return validated as Body;
 }
 
 export function withoutUndefined(body: Body | undefined): Body {

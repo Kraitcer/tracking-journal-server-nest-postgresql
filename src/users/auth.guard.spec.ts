@@ -50,6 +50,10 @@ describe('AuthGuard', () => {
   it('accepts a Bearer token for a resource owned by the user', async () => {
     const token = await new SignJWT({ _id: 'user-1' })
       .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer('tracking-journal')
+      .setAudience('tracking-journal-api')
+      .setIssuedAt()
+      .setExpirationTime('1h')
       .sign(secret);
     const request = {
       header: (name: string) =>
@@ -66,6 +70,10 @@ describe('AuthGuard', () => {
   it('rejects access to a resource owned by another user', async () => {
     const token = await new SignJWT({ _id: 'user-1' })
       .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer('tracking-journal')
+      .setAudience('tracking-journal-api')
+      .setIssuedAt()
+      .setExpirationTime('1h')
       .sign(secret);
     prisma.project.findFirst.mockResolvedValue(null);
     const request = {
@@ -79,5 +87,25 @@ describe('AuthGuard', () => {
     await expect(
       guard.canActivate(createContext(request)),
     ).rejects.toMatchObject({ status: HttpStatus.FORBIDDEN });
+  });
+
+  it('rejects tokens without an expiration claim', async () => {
+    const token = await new SignJWT({ _id: 'user-1' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer('tracking-journal')
+      .setAudience('tracking-journal-api')
+      .setIssuedAt()
+      .sign(secret);
+    const request = {
+      header: (name: string) =>
+        name === 'authorization' ? `Bearer ${token}` : undefined,
+      params: {},
+      query: {},
+      body: {},
+    };
+
+    await expect(
+      guard.canActivate(createContext(request)),
+    ).rejects.toMatchObject({ status: HttpStatus.UNAUTHORIZED });
   });
 });

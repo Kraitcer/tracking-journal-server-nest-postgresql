@@ -8,9 +8,14 @@ import {
   Post,
   Put,
   Req,
+  UseGuards,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { Public, type Body as Payload } from '../common/http.js';
+import { JoiValidationPipe } from '../common/joi-validation.pipe.js';
+import { createUserSchema } from './dto/create-user.dto.js';
+import { updateUserSchema } from './dto/update-user.dto.js';
 import { UsersService } from './users.service.js';
 
 type AuthenticatedRequest = Request & { user: { _id: string } };
@@ -26,13 +31,18 @@ export class UsersController {
 
   @Post('register')
   @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @HttpCode(200)
-  register(@Body() body: Payload) {
+  register(@Body(new JoiValidationPipe(createUserSchema)) body: Payload) {
     return this.usersService.register(body);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: Payload) {
+  update(
+    @Param('id') id: string,
+    @Body(new JoiValidationPipe(updateUserSchema)) body: Payload,
+  ) {
     return this.usersService.update(id, body);
   }
 

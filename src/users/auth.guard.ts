@@ -40,7 +40,13 @@ export class AuthGuard implements CanActivate {
 
     let userId: string;
     try {
-      const { payload } = await jwtVerify(token, getJwtSecret());
+      const { payload } = await jwtVerify(token, getJwtSecret(), {
+        issuer: 'tracking-journal',
+        audience: 'tracking-journal-api',
+      });
+      if (typeof payload.exp !== 'number' || typeof payload.iat !== 'number') {
+        throw new Error();
+      }
       if (typeof payload._id !== 'string' || !payload._id) throw new Error();
       userId = payload._id;
     } catch {

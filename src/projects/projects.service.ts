@@ -1,5 +1,5 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import type { Prisma } from '../generated/prisma/client.js';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Prisma } from '../generated/prisma/client.js';
 import { type Body, httpError, joiValidate } from '../common/http.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { fetusJoiSchema, projectJoiSchema } from './project.schema.js';
@@ -51,67 +51,111 @@ export class ProjectsService {
       where: { user_id: userId },
       orderBy: { priority: 'asc' },
     });
+    if (projects.length === 0) return [];
 
-    return Promise.all(
-      projects.map(async (project) => {
-        const byProject = { currentProjectID: project.id };
-        const [
-          queueTasksCount,
-          developmentTasksCount,
-          doneTasksCount,
-          totalTasksCount,
-          fetus,
-        ] = await Promise.all([
-          this.prisma.goal.count({ where: { ...byProject, status: 'queue' } }),
-          this.prisma.goal.count({
-            where: { ...byProject, status: 'development' },
-          }),
-          this.prisma.goal.count({ where: { ...byProject, status: 'done' } }),
-          this.prisma.goal.count({ where: byProject }),
-          this.prisma.fetus.findFirst({
-            where: { projectID: project.id },
-            orderBy: { createdAt: 'desc' },
-          }),
-        ]);
-
-        return {
-          ...project,
-          id: project.id,
-          FETUSIndex: fetus !== null ? fetus.fetusIndex : DEFAULT_FETUS,
-          queueTasksCount,
-          developmentTasksCount,
-          doneTasksCount,
-          done:
-            totalTasksCount > 0 ? (doneTasksCount / totalTasksCount) * 100 : 0,
-        };
+    const projectIds = projects.map((project) => project.id);
+    const [goalCounts, fetusRecords] = await Promise.all([
+      this.prisma.goal.groupBy({
+        by: ['currentProjectID', 'status'],
+        where: { currentProjectID: { in: projectIds } },
+        _count: { _all: true },
       }),
-    );
+      this.prisma.$queryRaw<
+        { projectID: string | null; fetusIndex: Prisma.JsonValue }[]
+      >`
+        SELECT DISTINCT ON ("projectID") "projectID", "fetusIndex"
+        FROM "FETUS"
+        WHERE "projectID" IN (${Prisma.join(projectIds)})
+        ORDER BY "projectID", "createdAt" DESC
+      `,
+    ]);
+
+    const countsByProject = new Map<
+      string,
+      { queue: number; development: number; done: number; total: number }
+    >();
+    for (const goalCount of goalCounts) {
+      const projectId = goalCount.currentProjectID;
+      if (!projectId) continue;
+      const counts = countsByProject.get(projectId) ?? {
+        queue: 0,
+        development: 0,
+        done: 0,
+        total: 0,
+      };
+      counts.total += goalCount._count._all;
+      if (goalCount.status === 'queue') counts.queue += goalCount._count._all;
+      if (goalCount.status === 'development') {
+        counts.development += goalCount._count._all;
+      }
+      if (goalCount.status === 'done') counts.done += goalCount._count._all;
+      countsByProject.set(projectId, counts);
+    }
+
+    const fetusByProject = new Map<string, (typeof fetusRecords)[number]>();
+    for (const fetus of fetusRecords) {
+      if (fetus.projectID && !fetusByProject.has(fetus.projectID)) {
+        fetusByProject.set(fetus.projectID, fetus);
+      }
+    }
+
+    return projects.map((project) => {
+      const counts = countsByProject.get(project.id) ?? {
+        queue: 0,
+        development: 0,
+        done: 0,
+        total: 0,
+      };
+      const fetus = fetusByProject.get(project.id);
+      return {
+        ...project,
+        id: project.id,
+        FETUSIndex: fetus ? fetus.fetusIndex : DEFAULT_FETUS,
+        queueTasksCount: counts.queue,
+        developmentTasksCount: counts.development,
+        doneTasksCount: counts.done,
+        done: counts.total > 0 ? (counts.done / counts.total) * 100 : 0,
+      };
+    });
   }
 
-  async reorder(body: Body) {
-    const { userId, projectOrder } = body;
+  async reorder(userId: string, body: Body) {
+    const projectOrder = body.projectOrder;
+    if (
+      !Array.isArray(projectOrder) ||
+      projectOrder.some(
+        (project) => !project || typeof project._id !== 'string',
+      )
+    ) {
+      throw httpError(HttpStatus.BAD_REQUEST, 'Invalid project order');
+    }
+
+    const projectIds = projectOrder.map((project: Body) => project._id);
+    if (new Set(projectIds).size !== projectIds.length) {
+      throw httpError(HttpStatus.BAD_REQUEST, 'Duplicate project IDs');
+    }
+
     try {
       const projects = await this.prisma.project.findMany({
-        where: { user_id: userId },
+        where: { user_id: userId, id: { in: projectIds } },
+        select: { id: true },
       });
-      const orderMap = new Map<string, number>(
-        (projectOrder as Body[]).map((project, index) => [project._id, index]),
-      );
+      if (projects.length !== projectIds.length) {
+        throw httpError(HttpStatus.FORBIDDEN, 'Access denied');
+      }
 
       await Promise.all(
-        projects.map(async (project) => {
-          const priority = orderMap.get(project.id);
-          if (priority !== undefined) {
-            await this.prisma.project.update({
-              where: { id: project.id },
-              data: { priority },
-            });
-          }
-        }),
+        projectIds.map((id, priority) =>
+          this.prisma.project.updateMany({
+            where: { id, user_id: userId },
+            data: { priority },
+          }),
+        ),
       );
 
       return { message: 'Project order updated successfully' };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       console.error('Error updating project order:', error);
       throw httpError(HttpStatus.INTERNAL_SERVER_ERROR, {
         error: 'Internal Server Error',
