@@ -10,8 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import type { Body as Payload } from '../common/http.js';
-import { Public } from '../common/public.decorator.js';
+import { Public, type Body as Payload } from '../common/http.js';
 import { UsersService } from './users.service.js';
 
 type AuthenticatedRequest = Request & { user: { _id: string } };

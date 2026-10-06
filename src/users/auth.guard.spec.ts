@@ -76,10 +76,8 @@ describe('AuthGuard', () => {
       body: {},
     };
 
-    const error = await guard
-      .canActivate(createContext(request))
-      .catch((value: { getStatus: () => number }) => value);
-
-    expect(error.getStatus()).toBe(HttpStatus.FORBIDDEN);
+    await expect(
+      guard.canActivate(createContext(request)),
+    ).rejects.toMatchObject({ status: HttpStatus.FORBIDDEN });
   });
 });

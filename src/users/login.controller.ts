@@ -1,6 +1,5 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import type { Body as Payload } from '../common/http.js';
-import { Public } from '../common/public.decorator.js';
+import { Public, type Body as Payload } from '../common/http.js';
 import { UsersService } from './users.service.js';
 
 @Controller('users/login')

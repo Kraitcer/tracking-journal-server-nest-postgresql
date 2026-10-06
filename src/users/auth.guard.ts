@@ -7,8 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { jwtVerify } from 'jose';
-import { httpError } from '../common/http.js';
-import { IS_PUBLIC_KEY } from '../common/public.decorator.js';
+import { httpError, IS_PUBLIC_KEY } from '../common/http.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { getJwtSecret } from '../config.js';
 

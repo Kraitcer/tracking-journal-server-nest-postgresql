@@ -1,5 +1,8 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, SetMetadata } from '@nestjs/common';
 import type Joi from 'joi';
+
+export const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 export type Body = Record<string, any>;
 
