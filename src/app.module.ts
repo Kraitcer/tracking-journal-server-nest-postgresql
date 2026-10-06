@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -16,6 +17,7 @@ import { SubTasksModule } from './sub-tasks/sub-tasks.module.js';
 import { TasksModule } from './tasks/tasks.module.js';
 import { UploadsModule } from './uploads/uploads.module.js';
 import { UsersModule } from './users/users.module.js';
+import { AuthGuard } from './users/auth.guard.js';
 import { WeekInReviewPagesModule } from './week-in-review-pages/week-in-review-pages.module.js';
 
 @Module({
@@ -38,6 +40,6 @@ import { WeekInReviewPagesModule } from './week-in-review-pages/week-in-review-p
     FreeDaysModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: AuthGuard }],
 })
 export class AppModule {}

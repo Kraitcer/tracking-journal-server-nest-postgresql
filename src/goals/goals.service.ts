@@ -35,8 +35,14 @@ function mapGoalFields(body: Body): Body {
 export class GoalsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async allGoalsInfo() {
+  async allGoalsInfo(userId: string) {
+    const projects = await this.prisma.project.findMany({
+      where: { user_id: userId },
+      select: { id: true },
+    });
+    const projectIds = projects.map((project) => project.id);
     const goals = await this.prisma.goal.findMany({
+      where: { currentProjectID: { in: projectIds } },
       select: { currentProjectID: true, status: true },
     });
     const grouped = new Map<

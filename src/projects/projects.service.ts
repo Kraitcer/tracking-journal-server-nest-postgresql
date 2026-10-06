@@ -153,11 +153,37 @@ export class ProjectsService {
     if (!project) {
       throw httpError(HttpStatus.NOT_FOUND, "Can't delete the project...");
     }
-    await this.prisma.$transaction([
-      this.prisma.subTask.deleteMany({ where: { project_id: id } }),
-      this.prisma.goal.deleteMany({ where: { currentProjectID: id } }),
-      this.prisma.project.delete({ where: { id } }),
-    ]);
+    await this.prisma.$transaction(async (transaction) => {
+      const goals = await transaction.goal.findMany({
+        where: { currentProjectID: id },
+        select: { id: true },
+      });
+      const goalIds = goals.map((goal) => goal.id);
+      const tasks = await transaction.task.findMany({
+        where: {
+          OR: [{ project_id: id }, { goal_id: { in: goalIds } }],
+        },
+        select: { id: true },
+      });
+      const taskIds = tasks.map((task) => task.id);
+
+      await transaction.subTask.deleteMany({
+        where: {
+          OR: [
+            { project_id: id },
+            { goal_id: { in: goalIds } },
+            { task_id: { in: taskIds } },
+          ],
+        },
+      });
+      await transaction.task.deleteMany({
+        where: {
+          OR: [{ project_id: id }, { goal_id: { in: goalIds } }],
+        },
+      });
+      await transaction.goal.deleteMany({ where: { currentProjectID: id } });
+      await transaction.project.delete({ where: { id } });
+    });
     return project;
   }
 }

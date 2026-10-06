@@ -7,20 +7,26 @@ import {
   Param,
   Post,
   Put,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import type { Body as Payload } from '../common/http.js';
+import { Public } from '../common/public.decorator.js';
 import { UsersService } from './users.service.js';
+
+type AuthenticatedRequest = Request & { user: { _id: string } };
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Req() req: AuthenticatedRequest) {
+    return this.usersService.findAll(req.user._id);
   }
 
   @Post('register')
+  @Public()
   @HttpCode(200)
   register(@Body() body: Payload) {
     return this.usersService.register(body);

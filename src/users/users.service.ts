@@ -38,8 +38,9 @@ export class UsersService {
       .sign(getJwtSecret());
   }
 
-  findAll() {
+  findAll(userId: string) {
     return this.prisma.user.findMany({
+      where: { id: userId },
       select: {
         id: true,
         email: true,

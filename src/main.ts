@@ -4,9 +4,10 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module.js';
 import { LegacyExceptionFilter } from './common/legacy-exception.filter.js';
-import { appConfig } from './config.js';
+import { appConfig, getJwtSecret } from './config.js';
 
 async function bootstrap() {
+  getJwtSecret();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.enableCors();
   app.setGlobalPrefix('api', { exclude: ['/'] });

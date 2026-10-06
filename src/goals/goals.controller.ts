@@ -6,18 +6,22 @@ import {
   HttpCode,
   Param,
   Post,
+  Req,
   Put,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import type { Body as Payload } from '../common/http.js';
 import { GoalsService } from './goals.service.js';
+
+type AuthenticatedRequest = Request & { user: { _id: string } };
 
 @Controller('goals')
 export class GoalsController {
   constructor(private readonly goalsService: GoalsService) {}
 
   @Get('allGoalsInfo')
-  allGoalsInfo() {
-    return this.goalsService.allGoalsInfo();
+  allGoalsInfo(@Req() req: AuthenticatedRequest) {
+    return this.goalsService.allGoalsInfo(req.user._id);
   }
 
   @Get('of_project/:projectID')
