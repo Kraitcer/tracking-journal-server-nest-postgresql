@@ -12,6 +12,28 @@ docker compose up --build
 
 The client is available at `http://localhost:5173`, the API at `http://localhost:5001/api`, and PostgreSQL data is kept in the `postgres_data` volume. The API generates the Prisma client and applies migrations when it starts.
 
+## Amvera
+
+Deploy the workspace root using `amvera.yaml` and `Dockerfile.amvera`. The multi-stage build compiles the Vite client, copies its `dist` into the server's `public` directory, and runs a single NestJS container on port `5000`. NestJS serves the frontend and its SPA routes alongside `/api`. Without `public/index.html`, the server remains API-only for local development; Docker Compose still runs separate client and API containers.
+
+Configure these runtime environment variables in Amvera:
+
+- `DATABASE_URL`: the production PostgreSQL connection URL, reachable from the container.
+- `trackingApp_jwtPrivateKey`: a random secret of at least 32 bytes.
+- `trackingApp_googleClientId`: the Google OAuth web client ID when Google login is used.
+
+The startup command applies committed Prisma migrations before starting the API. Amvera mounts persistent storage at `/data`; uploaded files use `/data/uploads`.
+
+The frontend API URL is `/api` at build time, so it uses the same origin as the deployed server. Google login additionally requires the public `VITE_GOOGLE_CLIENT_ID` build argument when building `Dockerfile.amvera`, matching `trackingApp_googleClientId`. Vite variables are embedded during the image build; setting them only on the running container does not update the frontend. Register the deployed origin in the Google OAuth client settings.
+
+To check the deployment image locally from the workspace root:
+
+```sh
+docker build -f Dockerfile.amvera -t tracking-journal-amvera .
+```
+
+For Google login, add `--build-arg VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com` to the build command. Local `.env` files, dependencies, build output, and uploads are excluded from the root Docker build context.
+
 ## Manual Setup
 
 1. Install dependencies with `npm install`.
