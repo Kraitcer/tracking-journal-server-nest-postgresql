@@ -10,7 +10,7 @@ From the workspace root, copy `.env.example` to `.env`, set the database credent
 docker compose up --build
 ```
 
-The client is available at `http://localhost:5173`, the API at `http://localhost:5001/api`, and PostgreSQL data is kept in the `postgres_data` volume. The API generates the Prisma client and applies migrations when it starts.
+The client is available at `http://localhost:5173`, the API at `http://localhost:5001/api`, and PostgreSQL data is kept in the `postgres_data` volume. The API synchronizes its persistent `api_node_modules` volume with `package-lock.json` using `npm ci`, generates the Prisma client, and applies migrations when it starts. This prevents stale dependencies in the volume from masking packages installed in a rebuilt image.
 
 ## Amvera
 
