@@ -1,9 +1,12 @@
 import path from 'node:path';
+import { getDatabaseUrl } from './database-url.js';
 
 // Env var names match server/config/custom-environment-variables.json so existing tokens stay valid.
 export const appConfig = {
   port: Number(process.env.PORT ?? 5000),
-  databaseUrl: process.env.DATABASE_URL ?? '',
+  get databaseUrl() {
+    return getDatabaseUrl();
+  },
   databasePoolMax: Number(process.env.DATABASE_POOL_MAX ?? 10),
   jwtPrivateKey: process.env.trackingApp_jwtPrivateKey,
   googleClientId: process.env.trackingApp_googleClientId ?? '',
