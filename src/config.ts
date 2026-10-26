@@ -8,7 +8,9 @@ export const appConfig = {
     return getDatabaseUrl();
   },
   databasePoolMax: Number(process.env.DATABASE_POOL_MAX ?? 10),
-  jwtPrivateKey: process.env.trackingApp_jwtPrivateKey,
+  jwtPrivateKey:
+    process.env.trackingApp_jwtPrivateKey ??
+    process.env.TRACKINGAPP_JWTPRIVATEKEY,
   googleClientId: process.env.trackingApp_googleClientId ?? '',
   corsOrigins: (
     process.env.CORS_ORIGINS ?? 'http://localhost:5173,http://127.0.0.1:5173'
@@ -23,8 +25,15 @@ export const appConfig = {
 
 export function getJwtSecret(): Uint8Array {
   const key = appConfig.jwtPrivateKey;
-  if (!key || Buffer.byteLength(key, 'utf8') < 32) {
-    throw new Error('trackingApp_jwtPrivateKey must be at least 32 bytes');
+  if (!key) {
+    throw new Error(
+      'JWT secret is missing or empty: set trackingApp_jwtPrivateKey or TRACKINGAPP_JWTPRIVATEKEY',
+    );
+  }
+  if (Buffer.byteLength(key, 'utf8') < 32) {
+    throw new Error(
+      'JWT secret (trackingApp_jwtPrivateKey or TRACKINGAPP_JWTPRIVATEKEY) must be at least 32 UTF-8 bytes',
+    );
   }
   return new TextEncoder().encode(key);
 }
