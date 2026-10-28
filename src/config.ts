@@ -11,7 +11,7 @@ export const appConfig = {
   jwtPrivateKey:
     process.env.trackingApp_jwtPrivateKey ??
     process.env.TRACKINGAPP_JWTPRIVATEKEY,
-  googleClientId: process.env.trackingApp_googleClientId ?? '',
+  googleClientId: process.env.GOOGLE_CLIENT_ID?.trim() ?? '',
   corsOrigins: (
     process.env.CORS_ORIGINS ?? 'http://localhost:5173,http://127.0.0.1:5173'
   )

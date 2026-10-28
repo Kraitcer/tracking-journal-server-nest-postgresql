@@ -20,11 +20,11 @@ Configure these runtime environment variables in Amvera:
 
 - `DATABASE_URL`: the production PostgreSQL connection URL, reachable from the container.
 - `trackingApp_jwtPrivateKey`: a random secret of at least 32 bytes.
-- `trackingApp_googleClientId`: the Google OAuth web client ID when Google login is used.
+- `GOOGLE_CLIENT_ID`: the public Google OAuth web client ID when Google login is used.
 
 The startup command applies committed Prisma migrations before starting the API. Amvera mounts persistent storage at `/data`; uploaded files use `/data/uploads`.
 
-The frontend API URL is `/api` at build time, so it uses the same origin as the deployed server. Google login additionally requires the public `VITE_GOOGLE_CLIENT_ID` build argument when building `Dockerfile.amvera`, matching `trackingApp_googleClientId`. Vite variables are embedded during the image build; setting them only on the running container does not update the frontend. Register the deployed origin in the Google OAuth client settings.
+The frontend API URL is `/api` at build time, so it uses the same origin as the deployed server. Before initializing Google Identity Services, the login page fetches the public client ID from `GET /api/users/login/google/config`. The server reads it from `GOOGLE_CLIENT_ID` and uses the same value to verify Google ID tokens. No frontend Google environment variable or Google Docker build argument is needed. Restart the server after changing the value; the frontend does not need rebuilding. Register the deployed origin in the Google OAuth client settings.
 
 To check the deployment image locally from the workspace root:
 
@@ -32,7 +32,7 @@ To check the deployment image locally from the workspace root:
 docker build -f Dockerfile.amvera -t tracking-journal-amvera .
 ```
 
-For Google login, add `--build-arg VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com` to the build command. Local `.env` files, dependencies, build output, and uploads are excluded from the root Docker build context.
+For Google login, set `GOOGLE_CLIENT_ID` on the running server container. Local `.env` files, dependencies, build output, and uploads are excluded from the root Docker build context.
 
 ## Manual Setup
 
@@ -41,7 +41,9 @@ For Google login, add `--build-arg VITE_GOOGLE_CLIENT_ID=your-google-web-client-
 3. Create/update the database schema with `npm run db:migrate`.
 4. Start the API with `npm run start:dev`.
 
-The API listens on port `5000` by default and uses the `/api` prefix. Set `PORT`, `DATABASE_POOL_MAX`, `trackingApp_jwtPrivateKey`, `trackingApp_googleClientId`, `UPLOADS_DIR`, or a comma-separated `CORS_ORIGINS` list for the deployed frontend origins. Each API instance defaults to at most 10 PostgreSQL connections; size this against the database connection budget before scaling replicas. Local development allows `http://localhost:5173` and `http://127.0.0.1:5173` by default.
+The API listens on port `5000` by default and uses the `/api` prefix. Set `PORT`, `DATABASE_POOL_MAX`, `trackingApp_jwtPrivateKey`, `GOOGLE_CLIENT_ID`, `UPLOADS_DIR`, or a comma-separated `CORS_ORIGINS` list for the deployed frontend origins. Each API instance defaults to at most 10 PostgreSQL connections; size this against the database connection budget before scaling replicas. Local development allows `http://localhost:5173` and `http://127.0.0.1:5173` by default.
+
+For manual local Google sign-in, set `GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com` in the server directory's `.env`, set `VITE_API_URL=http://localhost:5000/api` in the client's `.env`, and allow `http://localhost:5173` in the OAuth client's Authorized JavaScript origins. With Docker Compose, set `GOOGLE_CLIENT_ID` only in the workspace root `.env`; Compose passes it to the API. The old `trackingApp_googleClientId` and `VITE_GOOGLE_CLIENT_ID` settings are no longer used. The configuration endpoint is public and returns HTTP 503 when Google login is not configured; email/password login remains available. Do not put a Client Secret in frontend settings or this endpoint.
 
 ## Prisma commands
 

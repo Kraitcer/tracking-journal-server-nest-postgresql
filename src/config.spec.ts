@@ -7,6 +7,32 @@ describe('JWT secret configuration', () => {
     vi.stubEnv('TRACKINGAPP_JWTPRIVATEKEY', undefined);
   });
 
+  describe('Google client configuration', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    });
+
+    it('reads the public client ID from GOOGLE_CLIENT_ID', async () => {
+      vi.resetModules();
+      vi.stubEnv('GOOGLE_CLIENT_ID', '  test.apps.googleusercontent.com  ');
+      vi.stubEnv('trackingApp_googleClientId', 'legacy.apps.googleusercontent.com');
+      const { appConfig } = await import('./config.js');
+      expect(appConfig.googleClientId).toBe('test.apps.googleusercontent.com');
+    });
+
+    it.each([undefined, '', '   '])(
+      'leaves Google login unconfigured for %s without using the legacy variable',
+      async (value) => {
+        vi.resetModules();
+        vi.stubEnv('GOOGLE_CLIENT_ID', value);
+        vi.stubEnv('trackingApp_googleClientId', 'legacy.apps.googleusercontent.com');
+        const { appConfig } = await import('./config.js');
+        expect(appConfig.googleClientId).toBe('');
+      },
+    );
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
