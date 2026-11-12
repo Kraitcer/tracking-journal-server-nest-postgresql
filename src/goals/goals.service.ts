@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { type Body, httpError, joiValidate } from '../common/http.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { goalJoiSchema } from './goal.schema.js';
+import { createDefaultSmartServey } from './smart-servey.js';
 
 const NOT_FOUND = 'Fucking fuck...';
 
@@ -17,6 +18,7 @@ function mapGoalFields(body: Body): Body {
     creationDate,
     timeSpent,
     dueDate,
+    smart,
   } = body;
   return {
     id: id ?? _id,
@@ -28,6 +30,7 @@ function mapGoalFields(body: Body): Body {
     creationDate,
     timeSpent,
     dueDate,
+    smart,
   };
 }
 
@@ -122,7 +125,12 @@ export class GoalsService {
 
   create(body: Body) {
     joiValidate(goalJoiSchema, body);
-    return this.prisma.goal.create({ data: mapGoalFields(body) });
+    return this.prisma.goal.create({
+      data: mapGoalFields({
+        ...body,
+        smart: body.smart ?? createDefaultSmartServey(),
+      }),
+    });
   }
 
   async reorder(body: Body) {

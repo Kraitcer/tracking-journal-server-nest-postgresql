@@ -1637,7 +1637,8 @@ export const GoalScalarFieldEnum = {
   subTasks: 'subTasks',
   creationDate: 'creationDate',
   timeSpent: 'timeSpent',
-  dueDate: 'dueDate'
+  dueDate: 'dueDate',
+  smart: 'smart'
 } as const
 
 export type GoalScalarFieldEnum = (typeof GoalScalarFieldEnum)[keyof typeof GoalScalarFieldEnum]

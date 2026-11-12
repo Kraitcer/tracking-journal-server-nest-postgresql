@@ -54,6 +54,25 @@ For manual local Google sign-in, set `GOOGLE_CLIENT_ID=your-google-web-client-id
 
 The schema is in `prisma/schema.prisma`; the datasource URL for Prisma CLI is in `prisma.config.ts`, and the Nest runtime connects through Prisma's PostgreSQL driver adapter. Flexible journal/page payloads use PostgreSQL `JSONB` fields. Existing MongoDB records are not imported by these schema migrations and need a separate data-transfer step if they must be retained.
 
+## Goal SMART survey
+
+Goals store `smart` as a `SmartServey` JSONB object, not a boolean. It contains
+`specific`, `mesurable`, `actionable`, `resonable`, and `timeBound` (the spelling is
+part of the API contract). Each criterion has `status` (`newGoal` or
+`corresponds`), `definition`, a nullable conclusion, and nullable string-array
+suggestions. The specific criterion uses `currentNameConclusion` and
+`proposedNames`; the others use `currentGoalConclusion` with `proposedMeasures`,
+`proposedActions`, `proposedReasons`, or `proposedTimeFrames`, respectively.
+
+New goals default to `newGoal` in every criterion, the template definitions from
+`src/goals/smart-servey.ts`, and `null` for all conclusions and suggestions.
+The migration also initializes existing goals with this template. Apply it with
+`npm run db:deploy` and regenerate the Prisma client with `npm run db:generate`.
+`POST /api/goals` accepts an optional complete survey, and `PUT /api/goals/:id`
+replaces it when a complete `smart` object is supplied. Omitting `smart` during
+an update leaves the stored survey unchanged. Booleans, null surveys, invalid
+statuses, and incomplete survey objects are rejected with HTTP 400.
+
 ## Checks
 
 - `npm run build`

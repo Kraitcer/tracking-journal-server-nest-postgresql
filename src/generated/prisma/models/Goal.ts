@@ -76,6 +76,7 @@ export type GoalCountAggregateOutputType = {
   creationDate: number
   timeSpent: number
   dueDate: number
+  smart: number
   _all: number
 }
 
@@ -130,6 +131,7 @@ export type GoalCountAggregateInputType = {
   creationDate?: true
   timeSpent?: true
   dueDate?: true
+  smart?: true
   _all?: true
 }
 
@@ -231,6 +233,7 @@ export type GoalGroupByOutputType = {
   creationDate: string | null
   timeSpent: string | null
   dueDate: string | null
+  smart: runtime.JsonValue
   _count: GoalCountAggregateOutputType | null
   _avg: GoalAvgAggregateOutputType | null
   _sum: GoalSumAggregateOutputType | null
@@ -268,6 +271,7 @@ export type GoalWhereInput = {
   creationDate?: Prisma.StringNullableFilter<"Goal"> | string | null
   timeSpent?: Prisma.StringNullableFilter<"Goal"> | string | null
   dueDate?: Prisma.StringNullableFilter<"Goal"> | string | null
+  smart?: Prisma.JsonFilter<"Goal">
 }
 
 export type GoalOrderByWithRelationInput = {
@@ -282,6 +286,7 @@ export type GoalOrderByWithRelationInput = {
   creationDate?: Prisma.SortOrderInput | Prisma.SortOrder
   timeSpent?: Prisma.SortOrderInput | Prisma.SortOrder
   dueDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  smart?: Prisma.SortOrder
 }
 
 export type GoalWhereUniqueInput = Prisma.AtLeast<{
@@ -299,6 +304,7 @@ export type GoalWhereUniqueInput = Prisma.AtLeast<{
   creationDate?: Prisma.StringNullableFilter<"Goal"> | string | null
   timeSpent?: Prisma.StringNullableFilter<"Goal"> | string | null
   dueDate?: Prisma.StringNullableFilter<"Goal"> | string | null
+  smart?: Prisma.JsonFilter<"Goal">
 }, "id">
 
 export type GoalOrderByWithAggregationInput = {
@@ -313,6 +319,7 @@ export type GoalOrderByWithAggregationInput = {
   creationDate?: Prisma.SortOrderInput | Prisma.SortOrder
   timeSpent?: Prisma.SortOrderInput | Prisma.SortOrder
   dueDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  smart?: Prisma.SortOrder
   _count?: Prisma.GoalCountOrderByAggregateInput
   _avg?: Prisma.GoalAvgOrderByAggregateInput
   _max?: Prisma.GoalMaxOrderByAggregateInput
@@ -335,6 +342,7 @@ export type GoalScalarWhereWithAggregatesInput = {
   creationDate?: Prisma.StringNullableWithAggregatesFilter<"Goal"> | string | null
   timeSpent?: Prisma.StringNullableWithAggregatesFilter<"Goal"> | string | null
   dueDate?: Prisma.StringNullableWithAggregatesFilter<"Goal"> | string | null
+  smart?: Prisma.JsonWithAggregatesFilter<"Goal">
 }
 
 export type GoalCreateInput = {
@@ -349,6 +357,7 @@ export type GoalCreateInput = {
   creationDate?: string | null
   timeSpent?: string | null
   dueDate?: string | null
+  smart?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type GoalUncheckedCreateInput = {
@@ -363,6 +372,7 @@ export type GoalUncheckedCreateInput = {
   creationDate?: string | null
   timeSpent?: string | null
   dueDate?: string | null
+  smart?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type GoalUpdateInput = {
@@ -377,6 +387,7 @@ export type GoalUpdateInput = {
   creationDate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timeSpent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dueDate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smart?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type GoalUncheckedUpdateInput = {
@@ -391,6 +402,7 @@ export type GoalUncheckedUpdateInput = {
   creationDate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timeSpent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dueDate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smart?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type GoalCreateManyInput = {
@@ -405,6 +417,7 @@ export type GoalCreateManyInput = {
   creationDate?: string | null
   timeSpent?: string | null
   dueDate?: string | null
+  smart?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type GoalUpdateManyMutationInput = {
@@ -419,6 +432,7 @@ export type GoalUpdateManyMutationInput = {
   creationDate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timeSpent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dueDate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smart?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type GoalUncheckedUpdateManyInput = {
@@ -433,6 +447,7 @@ export type GoalUncheckedUpdateManyInput = {
   creationDate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timeSpent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dueDate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smart?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type GoalCountOrderByAggregateInput = {
@@ -447,6 +462,7 @@ export type GoalCountOrderByAggregateInput = {
   creationDate?: Prisma.SortOrder
   timeSpent?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
+  smart?: Prisma.SortOrder
 }
 
 export type GoalAvgOrderByAggregateInput = {
@@ -501,6 +517,7 @@ export type GoalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   creationDate?: boolean
   timeSpent?: boolean
   dueDate?: boolean
+  smart?: boolean
 }, ExtArgs["result"]["goal"]>
 
 export type GoalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -515,6 +532,7 @@ export type GoalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   creationDate?: boolean
   timeSpent?: boolean
   dueDate?: boolean
+  smart?: boolean
 }, ExtArgs["result"]["goal"]>
 
 export type GoalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -529,6 +547,7 @@ export type GoalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   creationDate?: boolean
   timeSpent?: boolean
   dueDate?: boolean
+  smart?: boolean
 }, ExtArgs["result"]["goal"]>
 
 export type GoalSelectScalar = {
@@ -543,9 +562,10 @@ export type GoalSelectScalar = {
   creationDate?: boolean
   timeSpent?: boolean
   dueDate?: boolean
+  smart?: boolean
 }
 
-export type GoalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "goalName" | "currentProjectID" | "description" | "priority" | "status" | "padMode" | "subTasks" | "creationDate" | "timeSpent" | "dueDate", ExtArgs["result"]["goal"]>
+export type GoalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "goalName" | "currentProjectID" | "description" | "priority" | "status" | "padMode" | "subTasks" | "creationDate" | "timeSpent" | "dueDate" | "smart", ExtArgs["result"]["goal"]>
 
 export type $GoalPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Goal"
@@ -562,6 +582,7 @@ export type $GoalPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     creationDate: string | null
     timeSpent: string | null
     dueDate: string | null
+    smart: runtime.JsonValue
   }, ExtArgs["result"]["goal"]>
   composites: {}
 }
@@ -996,6 +1017,7 @@ export interface GoalFieldRefs {
   readonly creationDate: Prisma.FieldRef<"Goal", 'String'>
   readonly timeSpent: Prisma.FieldRef<"Goal", 'String'>
   readonly dueDate: Prisma.FieldRef<"Goal", 'String'>
+  readonly smart: Prisma.FieldRef<"Goal", 'Json'>
 }
     
 
